@@ -4,7 +4,7 @@
     <UseBetaVersion>true</UseBetaVersion>
   </PropertyGroup>
 
-  <Import Project="Maids.props" />
+  <Import Project="Maid.props" />
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   
 </Project>
