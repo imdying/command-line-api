@@ -52,6 +52,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="System.CommandLine.NamingConventionBinder" />
+    <InternalsVisibleTo Include="Maid" />
   </ItemGroup>
 
 </Project>
