@@ -214,7 +214,7 @@ namespace System.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show help and usage information.
+        ///   Looks up a localized string similar to Show help and usage information..
         /// </summary>
         internal static string HelpOptionDescription {
             get {
@@ -376,7 +376,7 @@ namespace System.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show version information.
+        ///   Looks up a localized string similar to Show version information..
         /// </summary>
         internal static string VersionOptionDescription {
             get {

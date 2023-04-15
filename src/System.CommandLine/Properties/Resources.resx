@@ -154,7 +154,7 @@
     <value>Error reading response file '{0}': {1}</value>
   </data>
   <data name="HelpOptionDescription" xml:space="preserve">
-    <value>Show help and usage information</value>
+    <value>Show help and usage information.</value>
   </data>
   <data name="InvalidCharactersInFileName" xml:space="preserve">
     <value>Character not allowed in a file name: '{0}'.</value>
@@ -205,7 +205,7 @@
     <value>{0} option cannot be combined with other arguments.</value>
   </data>
   <data name="VersionOptionDescription" xml:space="preserve">
-    <value>Show version information</value>
+    <value>Show version information.</value>
   </data>
   <data name="ArgumentConversionCannotParse" xml:space="preserve">
     <value>Cannot parse argument '{0}' as expected type '{1}'.</value>
