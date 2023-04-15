@@ -37,6 +37,22 @@ namespace System.CommandLine
         public CliCommand(string name, string? description = null) : base(name)
             => Description = description;
 
+#pragma warning disable CS1591 // Missing XML comment for internally visible type or member
+        public CliCommand(string name, string? synopsis, string? description) : base(name)
+#pragma warning restore CS1591 // Missing XML comment for internally visible type or member
+        {
+            Synopsis = synopsis;
+            Description = description;
+        }
+
+#pragma warning disable CS1591 // Missing XML comment for internally visible type or member
+        public virtual string? Synopsis
+#pragma warning restore CS1591 // Missing XML comment for internally visible type or member
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Gets the child symbols.
         /// </summary>

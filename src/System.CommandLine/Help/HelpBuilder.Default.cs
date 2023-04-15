@@ -74,6 +74,18 @@ public partial class HelpBuilder
         }
 
         /// <summary>
+        /// Gets the description for the specified symbol (typically the used as the second column in help text).
+        /// </summary>
+        /// <param name="symbol">The symbol to get the description for.</param>
+        public static string GetIdentifierSymbolDescription(CliSymbol symbol)
+        {
+            if (symbol is CliCommand command)
+                return command.Synopsis ?? command.Description ?? string.Empty;
+            else
+                return symbol.Description ?? string.Empty;
+        }
+
+        /// <summary>
         /// Gets the usage label for the specified symbol (typically used as the first column text in help output).
         /// </summary>
         /// <param name="symbol">The symbol to get a help item for.</param>

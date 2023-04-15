@@ -419,7 +419,7 @@ namespace System.CommandLine.Help
 
                 var customizedSymbolDescription = customization?.GetSecondColumn?.Invoke(context);
 
-                var symbolDescription = customizedSymbolDescription ?? symbol.Description ?? string.Empty;
+                var symbolDescription = customizedSymbolDescription ?? Default.GetIdentifierSymbolDescription(symbol);
 
                 //in case symbol description is customized, do not output default value
                 //default value output is not customizable for identifier symbols
