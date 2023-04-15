@@ -228,10 +228,14 @@ public partial class HelpBuilder
                     ctx.WasSectionSkipped = true;
                     return;
                 }
+                else
+                {
+                    ctx.WasSectionSkipped = false;
+                }
 
                 ctx.HelpBuilder.WriteHeading(LocalizationResources.HelpOptionsTitle(), null, ctx.Output);
                 ctx.HelpBuilder.WriteColumns(options, ctx);
-                ctx.Output.WriteLine();
+                // ctx.Output.WriteLine();
             };
 
         ///  <summary>
