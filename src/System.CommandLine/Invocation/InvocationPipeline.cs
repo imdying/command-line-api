@@ -12,7 +12,7 @@ namespace System.CommandLine.Invocation
         {
             if (parseResult.Action is null)
             {
-                return 0;
+                return ReturnCodeForMissingAction(parseResult);
             }
 
             ProcessTerminationHandler? terminationHandler = null;
@@ -20,10 +20,20 @@ namespace System.CommandLine.Invocation
 
             try
             {
+                if (parseResult.NonexclusiveActions is not null)
+                {
+                    for (int i = 0; i < parseResult.NonexclusiveActions.Count; i++)
+                    {
+                        await parseResult.NonexclusiveActions[i].InvokeAsync(parseResult, cts.Token);
+                    }
+                }
+
                 Task<int> startedInvocation = parseResult.Action.InvokeAsync(parseResult, cts.Token);
 
                 if (parseResult.Configuration.ProcessTerminationTimeout.HasValue)
+                {
                     terminationHandler = new(cts, startedInvocation, parseResult.Configuration.ProcessTerminationTimeout.Value);
+                }
 
                 if (terminationHandler is null)
                 {
@@ -52,11 +62,19 @@ namespace System.CommandLine.Invocation
         {
             if (parseResult.Action is null)
             {
-                return 0;
+                return ReturnCodeForMissingAction(parseResult);
             }
 
             try
             {
+                if (parseResult.NonexclusiveActions is not null)
+                {
+                    for (var i = 0; i < parseResult.NonexclusiveActions.Count; i++)
+                    {
+                        parseResult.NonexclusiveActions[i].Invoke(parseResult);
+                    }
+                }
+
                 return parseResult.Action.Invoke(parseResult);
             }
             catch (Exception ex) when (parseResult.Configuration.EnableDefaultExceptionHandler)
@@ -78,6 +96,18 @@ namespace System.CommandLine.Invocation
                 ConsoleHelpers.ResetTerminalForegroundColor();
             }
             return 1;
+        }
+
+        private static int ReturnCodeForMissingAction(ParseResult parseResult)
+        {
+            if (parseResult.Errors.Count > 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
     }
 }

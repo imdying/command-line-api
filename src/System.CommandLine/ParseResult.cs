@@ -17,27 +17,29 @@ namespace System.CommandLine
     /// </summary>
     public sealed class ParseResult
     {
-        private readonly IReadOnlyList<ParseError> _errors;
         private readonly CommandResult _rootCommandResult;
-        private readonly IReadOnlyList<Token> _unmatchedTokens;
+        private readonly IReadOnlyList<CliToken> _unmatchedTokens;
         private CompletionContext? _completionContext;
-        private CliAction? _action;
+        private readonly CliAction? _action;
+        private readonly List<CliAction>? _nonexclusiveActions;
         private Dictionary<string, SymbolResult?>? _namedResults;
 
         internal ParseResult(
             CliConfiguration configuration,
             CommandResult rootCommandResult,
             CommandResult commandResult,
-            List<Token> tokens,
-            IReadOnlyList<Token>? unmatchedTokens,
+            List<CliToken> tokens,
+            List<CliToken>? unmatchedTokens,
             List<ParseError>? errors,
             string? commandLineText = null,
-            CliAction? action = null)
+            CliAction? action = null,
+            List<CliAction>? nonexclusiveActions = null)
         {
             Configuration = configuration;
             _rootCommandResult = rootCommandResult;
             CommandResult = commandResult;
             _action = action;
+            _nonexclusiveActions = nonexclusiveActions;
 
             // skip the root command when populating Tokens property
             if (tokens.Count > 1)
@@ -50,12 +52,12 @@ namespace System.CommandLine
             }
             else
             {
-                Tokens = Array.Empty<Token>();
+                Tokens = Array.Empty<CliToken>();
             }
 
             CommandLineText = commandLineText;
-            _unmatchedTokens = unmatchedTokens is null ? Array.Empty<Token>() : unmatchedTokens;
-            _errors = errors is not null ? errors : Array.Empty<ParseError>();
+            _unmatchedTokens = unmatchedTokens is null ? Array.Empty<CliToken>() : unmatchedTokens;
+            Errors = errors is not null ? errors : Array.Empty<ParseError>();
         }
 
         internal static ParseResult Empty() => new CliRootCommand().Parse(Array.Empty<string>());
@@ -78,12 +80,12 @@ namespace System.CommandLine
         /// <summary>
         /// Gets the parse errors found while parsing command line input.
         /// </summary>
-        public IReadOnlyList<ParseError> Errors => _errors;
+        public IReadOnlyList<ParseError> Errors { get; }
 
         /// <summary>
         /// Gets the tokens identified while parsing command line input.
         /// </summary>
-        public IReadOnlyList<Token> Tokens { get; }
+        public IReadOnlyList<CliToken> Tokens { get; }
 
         /// <summary>
         /// Holds the value of a complete command line input prior to splitting and tokenization, when provided.
@@ -94,7 +96,7 @@ namespace System.CommandLine
         /// <summary>
         /// Gets the list of tokens used on the command line that were not matched by the parser.
         /// </summary>
-        public string[] UnmatchedTokens
+        public IReadOnlyList<string> UnmatchedTokens
             => _unmatchedTokens.Count == 0 ? Array.Empty<string>() : _unmatchedTokens.Select(t => t.Value).ToArray();
 
         /// <summary>
@@ -201,38 +203,38 @@ namespace System.CommandLine
         /// </summary>
         /// <param name="argument">The argument for which to find a result.</param>
         /// <returns>A result for the specified argument, or <see langword="null"/> if it was not provided and no default was configured.</returns>
-        public ArgumentResult? FindResultFor(CliArgument argument) =>
-            _rootCommandResult.FindResultFor(argument);
+        public ArgumentResult? GetResult(CliArgument argument) =>
+            _rootCommandResult.GetResult(argument);
 
         /// <summary>
         /// Gets the result, if any, for the specified command.
         /// </summary>
         /// <param name="command">The command for which to find a result.</param>
         /// <returns>A result for the specified command, or <see langword="null"/> if it was not provided.</returns>
-        public CommandResult? FindResultFor(CliCommand command) =>
-            _rootCommandResult.FindResultFor(command);
+        public CommandResult? GetResult(CliCommand command) =>
+            _rootCommandResult.GetResult(command);
 
         /// <summary>
         /// Gets the result, if any, for the specified option.
         /// </summary>
         /// <param name="option">The option for which to find a result.</param>
         /// <returns>A result for the specified option, or <see langword="null"/> if it was not provided and no default was configured.</returns>
-        public OptionResult? FindResultFor(CliOption option) =>
-            _rootCommandResult.FindResultFor(option);
+        public OptionResult? GetResult(CliOption option) =>
+            _rootCommandResult.GetResult(option);
 
         /// <summary>
         /// Gets the result, if any, for the specified directive.
         /// </summary>
         /// <param name="directive">The directive for which to find a result.</param>
         /// <returns>A result for the specified directive, or <see langword="null"/> if it was not provided.</returns>
-        public DirectiveResult? FindResultFor(CliDirective directive) => _rootCommandResult.FindResultFor(directive);
+        public DirectiveResult? GetResult(CliDirective directive) => _rootCommandResult.GetResult(directive);
 
         /// <summary>
         /// Gets the result, if any, for the specified symbol.
         /// </summary>
         /// <param name="symbol">The symbol for which to find a result.</param>
         /// <returns>A result for the specified symbol, or <see langword="null"/> if it was not provided and no default was configured.</returns>
-        public SymbolResult? FindResultFor(CliSymbol symbol)
+        public SymbolResult? GetResult(CliSymbol symbol)
             => _rootCommandResult.SymbolResultTree.TryGetValue(symbol, out SymbolResult? result) ? result : null;
 
         /// <summary>
@@ -261,14 +263,11 @@ namespace System.CommandLine
                 context = tcc.AtCursorPosition(position.Value);
             }
 
-            var completions =
-                currentSymbol is not null
-                    ? currentSymbol.GetCompletions(context)
-                    : Array.Empty<CompletionItem>();
+            var completions = currentSymbol.GetCompletions(context);
 
             string[] optionsWithArgumentLimitReached = currentSymbolResult is CommandResult commandResult
-                ? OptionsWithArgumentLimitReached(commandResult)
-                : Array.Empty<string>();
+                                                           ? OptionsWithArgumentLimitReached(commandResult)
+                                                           : Array.Empty<string>();
 
             completions =
                 completions.Where(item => optionsWithArgumentLimitReached.All(s => s != item.Label));
@@ -304,6 +303,8 @@ namespace System.CommandLine
         /// that will be performed when the parse result is invoked.
         /// </summary>
         public CliAction? Action => _action ?? CommandResult.Command.Action;
+
+        internal IReadOnlyList<CliAction>? NonexclusiveActions => _nonexclusiveActions;
 
         private SymbolResult SymbolToComplete(int? position = null)
         {
